@@ -1,4 +1,3 @@
-import org.apache.lucene.morphology.uk.UkrainianMorphology;
 import java.io.*;
 import java.util.*;
 
@@ -8,7 +7,6 @@ public class Main {
             throw new IllegalArgumentException("Файл не може бути null або порожнім");
         }
 
-        UkrainianMorphology morphology = new UkrainianMorphology();
         Map<String, Integer> wordCount = new HashMap<>();
         int maxCount = 0;
 
@@ -18,13 +16,11 @@ public class Main {
 
             String line;
             while ((line = bufferedReader.readLine()) != null) {
-                String[] words = line.replaceAll("[^a-zA-Zа-яА-ЯёЁіІїЇєЄ']", " ").split("\\s+");
+                String[] words = line.replaceAll("[^a-zA-Zа-яА-ЯіІїЇєЄґҐ']", " ").split("\\s+");
                 for (String word : words) {
                     if (!word.isEmpty()) {
-                        List<String> baseForms = morphology.getNormalForms(word);
-                        String lemma = baseForms.isEmpty() ? word : baseForms.get(0);
-                        wordCount.put(lemma, wordCount.getOrDefault(lemma, 0) + 1);
-                        maxCount = Math.max(maxCount, wordCount.get(lemma));
+                        wordCount.put(word, wordCount.getOrDefault(word, 0) + 1);
+                        maxCount = Math.max(maxCount, wordCount.get(word));
                     }
                 }
             }
@@ -44,9 +40,12 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        String filename = "C:\\Users\\User\\Desktop\\OP5_main\\OP5_main\\src\\myText.txt";
+        if (args.length == 0 || args[0].isEmpty()) {
+            throw new IllegalArgumentException("Помилка. Треба передати шлях до файлу через аргумент");
+        }
 
         try {
+            String filename = args[0];
             List<String> result = commonestWords(filename);
             System.out.println("Найчастіше вживані слова: " + result);
         } catch (FileNotFoundException e) {
