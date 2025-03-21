@@ -12,10 +12,13 @@ public class Main {
         Map<String, Integer> wordCount = new HashMap<>();
         int maxCount = 0;
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
+        try (InputStream inputStream = new FileInputStream(filename);
+             Reader reader = new InputStreamReader(inputStream);
+             BufferedReader bufferedReader = new BufferedReader(reader)) {
+
             String line;
-            while ((line = reader.readLine()) != null) {
-                String[] words = line.toLowerCase().replaceAll("[^a-zA-Zа-яА-ЯёЁіІїЇєЄ']", " ").split("\\s+");
+            while ((line = bufferedReader.readLine()) != null) {
+                String[] words = line.replaceAll("[^a-zA-Zа-яА-ЯёЁіІїЇєЄ']", " ").split("\\s+");
                 for (String word : words) {
                     if (!word.isEmpty()) {
                         List<String> baseForms = morphology.getNormalForms(word);
@@ -25,6 +28,10 @@ public class Main {
                     }
                 }
             }
+        }
+
+        if (wordCount.isEmpty()) {
+            throw new IOException("Файл порожній або не містить слів.");
         }
 
         List<String> commonWords = new ArrayList<>();
@@ -45,7 +52,7 @@ public class Main {
         } catch (FileNotFoundException e) {
             System.err.println("Файл не знайдено!");
         } catch (IOException e) {
-            System.err.println("Помилка читання файлу!");
+            System.err.println("Помилка читання файлу: " + e.getMessage());
         }
     }
 }
