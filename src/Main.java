@@ -1,20 +1,51 @@
+import org.apache.lucene.morphology.uk.UkrainianMorphology;
 import java.io.*;
+import java.util.*;
 
 public class Main {
-    public static void main(String[] args){
-        if(args.length == 0 || args[0].isEmpty()){
-            throw new IllegalArgumentException("помилка. Треба передати шлях до файлу через аргумент");
+    public static List<String> commonestWords(String filename) throws IOException {
+        if (filename == null || filename.isEmpty()) {
+            throw new IllegalArgumentException("Файл не може бути null або порожнім");
         }
-    try(BufferedReader buff = new BufferedReader(new FileReader(args[0]))){
-        String file;
-        while ((file=buff.readLine()) != null){
-            System.out.println(file);
+
+        UkrainianMorphology morphology = new UkrainianMorphology();
+        Map<String, Integer> wordCount = new HashMap<>();
+        int maxCount = 0;
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] words = line.toLowerCase().replaceAll("[^a-zA-Zа-яА-ЯёЁіІїЇєЄ']", " ").split("\\s+");
+                for (String word : words) {
+                    if (!word.isEmpty()) {
+                        List<String> baseForms = morphology.getNormalForms(word);
+                        String lemma = baseForms.isEmpty() ? word : baseForms.get(0);
+                        wordCount.put(lemma, wordCount.getOrDefault(lemma, 0) + 1);
+                        maxCount = Math.max(maxCount, wordCount.get(lemma));
+                    }
+                }
+            }
         }
-    } catch (FileNotFoundException e){
-        System.out.println("файл не знайдено");
-    }catch (IOException e){
-        System.out.println("помилка");
-    }
+
+        List<String> commonWords = new ArrayList<>();
+        for (Map.Entry<String, Integer> entry : wordCount.entrySet()) {
+            if (entry.getValue() == maxCount) {
+                commonWords.add(entry.getKey());
+            }
+        }
+        return commonWords;
     }
 
+    public static void main(String[] args) {
+        String filename = "C:\\Users\\User\\Desktop\\OP5_main\\OP5_main\\src\\myText.txt";
+
+        try {
+            List<String> result = commonestWords(filename);
+            System.out.println("Найчастіше вживані слова: " + result);
+        } catch (FileNotFoundException e) {
+            System.err.println("Файл не знайдено!");
+        } catch (IOException e) {
+            System.err.println("Помилка читання файлу!");
+        }
+    }
 }
